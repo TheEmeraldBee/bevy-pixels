@@ -82,6 +82,21 @@ impl Tilemap {
         entity
     }
 
+    pub fn try_set_tile(
+        &mut self,
+        commands: &mut Commands,
+        chunks: &Query<&Chunk>,
+        loc: IVec2,
+        tile: Tile,
+        additional_components: impl Bundle,
+    ) -> Option<Entity> {
+        if self.get_tile(loc, chunks).is_some() {
+            return None;
+        }
+
+        Some(self.set_tile(commands, loc, tile, additional_components))
+    }
+
     pub fn delete_tile(&mut self, loc: IVec2) {
         if !self.has_chunk(loc) {
             return;

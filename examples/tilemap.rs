@@ -1,6 +1,6 @@
 use bevy::{prelude::*, render::camera::ScalingMode, utils::HashMap, window::PrimaryWindow};
 use bevy_pixels::{
-    multi_tile::{multi_tile_delete, MultiTile},
+    multi_tile::MultiTile,
     plugin::PixelPlugin,
     tile::Tile,
     tilemap::{world_unit_to_tile, Tilemap, TilemapBundle},
@@ -19,7 +19,6 @@ pub fn main() {
         .add_systems(PostStartup, set_tons_of_tiles)
         .add_systems(Update, placement_system)
         .insert_resource(TileResource::default())
-        .add_systems(PreUpdate, multi_tile_delete)
         .run()
 }
 

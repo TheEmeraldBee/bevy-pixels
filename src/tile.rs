@@ -75,6 +75,19 @@ impl Tile {
 
         Some(self.pixels[loc.y as usize][loc.x as usize])
     }
+
+    pub fn pixel_count(&self) -> usize {
+        let mut pixel_count = 0;
+        for x in 0..TILE_SIZE {
+            for y in 0..TILE_SIZE {
+                if self.pixels[y][x].a() > 0.0 {
+                    pixel_count += 1;
+                }
+            }
+        }
+
+        pixel_count
+    }
 }
 
 fn verify_pixel_loc(loc: IVec2) -> bool {
