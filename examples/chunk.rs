@@ -1,5 +1,5 @@
 use bevy::{prelude::*, render::camera::ScalingMode};
-use bevy_pixels::{
+use bevy_pixel_map::{
     chunk::{Chunk, ChunkBundle},
     plugin::PixelPlugin,
     tile::Tile,

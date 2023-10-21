@@ -1,5 +1,5 @@
 use bevy::{prelude::*, render::camera::ScalingMode, utils::HashMap, window::PrimaryWindow};
-use bevy_pixels::{
+use bevy_pixel_map::{
     multi_tile::MultiTile,
     plugin::PixelPlugin,
     tile::Tile,
