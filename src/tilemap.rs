@@ -2,8 +2,8 @@ use std::{cmp::Ordering, collections::VecDeque};
 
 use bevy::{
     prelude::{
-        Assets, BuildChildren, Bundle, Commands, Component, ComputedVisibility, Entity, IVec2,
-        Image, Query, ResMut, Vec2, Visibility,
+        Assets, BuildChildren, Bundle, Color, Commands, Component, ComputedVisibility, Entity,
+        IVec2, Image, Query, ResMut, Vec2, Visibility,
     },
     transform::TransformBundle,
     utils::HashMap,
@@ -12,14 +12,25 @@ use bevy::{
 use crate::{
     chunk::{Chunk, ChunkBundle},
     tile::{Tile, TileBundle},
-    CHUNK_SIZE,
+    CHUNK_SIZE, TILE_SIZE,
 };
 
 #[derive(Clone, Debug)]
 pub enum TileEvent {
     MakeChunk(IVec2),
-    SetTile { loc: IVec2, entity: Entity },
-    DeleteTile { loc: IVec2, mark: bool },
+    SetTile {
+        loc: IVec2,
+        entity: Entity,
+    },
+    DeleteTile {
+        loc: IVec2,
+        mark: bool,
+    },
+    SetPixel {
+        loc: IVec2,
+        pixel: IVec2,
+        color: Color,
+    },
 }
 
 #[derive(Bundle)]
@@ -97,6 +108,15 @@ impl Tilemap {
         Some(self.set_tile(commands, loc, tile, additional_components))
     }
 
+    pub fn set_pixel(&mut self, loc: IVec2, pixel: IVec2, color: Color) {
+        if !self.has_chunk(loc) {
+            return;
+        }
+
+        self.tasks
+            .push_back(TileEvent::SetPixel { loc, pixel, color })
+    }
+
     pub fn delete_tile(&mut self, loc: IVec2) {
         if !self.has_chunk(loc) {
             return;
@@ -170,7 +190,7 @@ pub fn tile_from_location(loc: IVec2) -> IVec2 {
     IVec2::new(loc_x as i32, loc_y as i32)
 }
 
-// Converts a world coordinate to a tile location
+/// Converts a world coordinate to a tile location
 pub fn world_unit_to_tile(loc: Vec2) -> IVec2 {
     IVec2::new(
         (loc.x).ceil() as i32 + CHUNK_SIZE as i32 / 2 - 1,
@@ -178,10 +198,30 @@ pub fn world_unit_to_tile(loc: Vec2) -> IVec2 {
     )
 }
 
+/// Converts a world coordinate to a tile & pixel location
+pub fn world_unit_to_pixel(loc: Vec2) -> (IVec2, IVec2) {
+    let world_loc = world_unit_to_tile(loc);
+
+    let mut leftover_loc = Vec2::new(
+        world_loc.x as f32 - loc.x - 7.0,
+        world_loc.y as f32 - loc.y - 7.0,
+    );
+    leftover_loc.x *= TILE_SIZE as f32;
+    leftover_loc.y *= TILE_SIZE as f32;
+
+    let pixel = IVec2::new(
+        8 - (leftover_loc.x.ceil() as i32),
+        leftover_loc.y.ceil() as i32 - 1,
+    );
+
+    (world_loc, pixel)
+}
+
 pub fn tilemap_event_system(
     mut commands: Commands,
     mut tilemaps: Query<(Entity, &mut Tilemap)>,
     mut chunks: Query<(Entity, &mut Chunk)>,
+    mut tiles: Query<(Entity, &mut Tile)>,
     mut images: ResMut<Assets<Image>>,
 ) {
     for (tilemap_entity, mut tilemap) in &mut tilemaps {
@@ -232,6 +272,27 @@ pub fn tilemap_event_system(
                             } else {
                                 chunk.delete_unmarked(tile_from_location(loc), &mut commands);
                             }
+                        }
+                    }
+                }
+                TileEvent::SetPixel { loc, pixel, color } => {
+                    let chunk_loc = chunk_from_location(loc);
+
+                    if tilemap.has_chunk(loc) {
+                        if let Ok((_, mut chunk)) = chunks.get_mut(
+                            *tilemap
+                                .chunks
+                                .get_mut(&chunk_loc)
+                                .expect("Chunk should exist"),
+                        ) {
+                            if let Some(tile) = chunk.get_tile(tile_from_location(loc)) {
+                                tiles
+                                    .get_mut(tile)
+                                    .expect("Tile should exist")
+                                    .1
+                                    .set_pixel(pixel, color);
+                            }
+                            chunk.update_tile(tile_from_location(loc));
                         }
                     }
                 }

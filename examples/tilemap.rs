@@ -3,7 +3,7 @@ use bevy_pixel_map::{
     multi_tile::MultiTile,
     plugin::PixelPlugin,
     tile::Tile,
-    tilemap::{world_unit_to_tile, Tilemap, TilemapBundle},
+    tilemap::{world_unit_to_pixel, Tilemap, TilemapBundle},
 };
 
 #[derive(Default, Resource)]
@@ -70,7 +70,7 @@ fn placement_system(
         let mouse_location = camera.viewport_to_world_2d(trans, mouse_pos).unwrap();
 
         // Now convert to tile coords.
-        let tile_coord = world_unit_to_tile(mouse_location);
+        let (tile_coord, pixel_coord) = world_unit_to_pixel(mouse_location);
 
         if input.pressed(MouseButton::Left) {
             let image = images
@@ -93,6 +93,13 @@ fn placement_system(
 
             let tile = MultiTile::from_image(image);
             tile.place(tile_coord, &mut tilemaps.single_mut(), &mut commands);
+        }
+
+        if input.pressed(MouseButton::Middle) {
+            // Set the tile's pixel to red
+            tilemaps
+                .single_mut()
+                .set_pixel(tile_coord, pixel_coord, Color::RED);
         }
     }
 }
