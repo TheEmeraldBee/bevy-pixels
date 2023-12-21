@@ -14,7 +14,10 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-      - run : |
+      - name: Install Dependencies
+        run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
+      - name: Publish
+        run : |
           VERSION="${GITHUB_REF#refs/*/}" make publish
-        env:
-            CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_KEY }}
+          env:
+              CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_KEY }}
