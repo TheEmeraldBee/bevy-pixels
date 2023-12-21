@@ -8,6 +8,8 @@ pub mod util;
 
 pub mod tilemap;
 
+pub mod prelude;
+
 pub const CHUNK_SIZE: usize = 16;
 
 pub const TILE_SIZE: usize = 8;
