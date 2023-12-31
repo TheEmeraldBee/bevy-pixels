@@ -15,8 +15,8 @@ impl Plugin for PixelPlugin {
             (
                 chunk_deleter,
                 multi_tile_delete,
-                tilemap_event_system,
                 chunk_texture_update,
+                tilemap_event_system,
             )
                 .chain(),
         );

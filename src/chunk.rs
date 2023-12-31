@@ -206,7 +206,7 @@ impl Chunk {
 
         self.image.data = data;
 
-        self.image_handle = images.set(self.image_handle.clone(), self.image.clone());
+        images.insert(self.image_handle.clone(), self.image.clone());
     }
 }
 
